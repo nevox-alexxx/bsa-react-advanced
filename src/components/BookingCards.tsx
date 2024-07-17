@@ -1,15 +1,34 @@
 import '../assets/css/style.css';
-import bookings from '../assets/data/bookings.json';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/api';
+import { Booking } from '../types';
 
 export function BookingCards() {
   const navigate = useNavigate();
+  const [bookings, setBookings] = useState<Booking[]>([]);
 
-  const cancelBooking = (id: string) => {
-    const index = bookings.findIndex(booking => booking.id === id);
-    if (index !== -1) {
-      bookings.splice(index, 1);
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await api.get('/bookings');
+        setBookings(response.data as Booking[]);
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+      }
+    };
+
+    fetchBookings();
+  }, []);
+
+  const cancelBooking = async (id: string) => {
+    try {
+      await api.delete(`/bookings/${id}`);
+      const updatedBookings = bookings.filter(booking => booking.id !== id);
+      setBookings(updatedBookings);
       navigate('/bookings');
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
     }
   };
 
@@ -51,5 +70,5 @@ export function BookingCards() {
         </li>
       ))}
     </ul>
-  )
+  );
 }

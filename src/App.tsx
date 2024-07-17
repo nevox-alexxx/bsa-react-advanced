@@ -4,7 +4,7 @@ import './assets/css/style.css';
 
 function App() {
   return (
-    <div className="app-container">
+    <div data-test-id="loader" className="app-container">
       <Outlet />
       <Footer />
     </div >

@@ -1,21 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import trips from '../assets/data/trips.json';
+
 import '../assets/css/style.css';
 
 import { MainHeader } from '../components/MainHeader';
 import { Modal } from '../components/Modal';
+import api from '../api/api';
 
 export function TripPage() {
-  const { tripId } = useParams();
-  const trip = trips.find(t => t.id === tripId);
+  const { tripId } = useParams<{ tripId: string }>();
+  const [trip, setTrip] = useState<any>(null); 
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchTrip = async () => {
+      try {
+        const response = await api.get(`/trips/${tripId}`);
+        setTrip(response.data);
+      } catch (error) {
+        console.error('Error fetching trip:', error);
+      }
+    };
+
+    fetchTrip();
+  }, [tripId]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
   if (!trip) {
-    return <div>Trip not found</div>;
+    return <div>Loading...</div>;
   }
 
   return (
@@ -44,9 +58,10 @@ export function TripPage() {
                   <strong>{trip.duration}</strong> days
                 </span>
 
-                <span 
-                  data-test-id="trip-details-level" 
-                  className="trip-info__level">
+                <span
+                  data-test-id="trip-details-level"
+                  className="trip-info__level"
+                >
                   {trip.level}
                 </span>
               </div>
@@ -79,12 +94,13 @@ export function TripPage() {
         </div>
       </main>
 
-      {isModalOpen && 
-      <Modal 
-        isOpen={isModalOpen} 
-        trip={trip} 
-        onClose={closeModal} 
-      />}
+      {isModalOpen && (
+        <Modal 
+          isOpen={isModalOpen} 
+          trip={trip} 
+          onClose={closeModal} 
+        />
+      )}
     </>
   );
 }

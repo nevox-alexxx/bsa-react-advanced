@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MainHeader } from '../components/MainHeader'; 
 import { TripCards } from '../components/TripCards';
 import { Filters } from '../components/Filters';
-import trips from '../assets/data/trips.json';
+import api from '../api/api';
+import { Trip } from '../types';
 
 export function MainPage() {
   const [filters, setFilters] = useState({ 
@@ -10,6 +11,21 @@ export function MainPage() {
     duration: '', 
     level: '' 
   });
+
+  const [trips, setTrips] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchTrips = async () => {
+      try {
+        const response = await api.get('/trips');
+        setTrips(response.data as Trip[]);
+      } catch (error) {
+        console.error('Error fetching trips:', error);
+      }
+    };
+
+    fetchTrips();
+  }, []);
 
   const handleFilterChange = (
     newFilters: { 

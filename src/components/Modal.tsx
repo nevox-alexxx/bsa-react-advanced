@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import bookings from '../assets/data/bookings.json';
+import api from '../api/api';
 import '../assets/css/style.css';
 
 interface ModalProps {
@@ -20,7 +20,7 @@ export function Modal({ isOpen, onClose, trip }: ModalProps) {
 
   const total = trip.price * guests;
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     const tomorrow = new Date();
@@ -28,27 +28,32 @@ export function Modal({ isOpen, onClose, trip }: ModalProps) {
 
     const selectedDate = new Date(date);
     if (selectedDate < tomorrow) {
-      alert('Planned date, should be not earlier than tomorrow');
+      alert('Planned date should not be earlier than tomorrow');
       return;
     }
 
-    const newBooking = {
-      id: `${Date.now()}`,
-      userId: 'UserId',
-      tripId: `${trip.id}`,
-      guests: guests,
-      date: selectedDate.toISOString().slice(0, 10),
-      trip: {
-        title: trip.title,
-        duration: trip.duration,
-        price: trip.price,
-      },
-      totalPrice: total,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      const newBooking = {
+        userId: 'UserId',
+        tripId: trip.id,
+        guests: guests,
+        date: selectedDate.toISOString().slice(0, 10),
+        trip: {
+          title: trip.title,
+          duration: trip.duration,
+          price: trip.price,
+        },
+        totalPrice: total,
+        createdAt: new Date().toISOString(),
+      };
 
-    bookings.push(newBooking);
-    onClose();
+      await api.post('/bookings', newBooking);
+
+      onClose();
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      alert('Failed to book trip. Please try again.');
+    }
   };
 
   return (
